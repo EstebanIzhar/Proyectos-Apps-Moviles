@@ -3,5 +3,5 @@ export interface Task {
     titulo: string;
     descripcion: string;
     finalizado: boolean;
-    proridad: 'Baja' | 'Media' | 'Alta'
+    prioridad: 'Baja' | 'Media' | 'Alta'
 }

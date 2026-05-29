@@ -1,21 +1,39 @@
+import { Task } from './../models/task.model';
 import { Component } from '@angular/core';
-import { IonHeader, IonToolbar, IonTitle, IonContent } from '@ionic/angular/standalone';
+import { FormsModule } from '@angular/forms';
 
-interface Task {
-  id: number;
-  titulo: string;
-  descripcion: string;
-  finalizado: boolean;
-  prioridad: string;
-}
+import {
+  IonHeader,
+  IonToolbar,
+  IonTitle,
+  IonContent,
+  IonItem,
+  IonLabel,
+  IonInput,
+  IonButton,
+  IonList
+} from '@ionic/angular/standalone';
 
 @Component({
   selector: 'app-home',
   templateUrl: 'home.page.html',
   styleUrls: ['home.page.scss'],
-  imports: [IonHeader, IonToolbar, IonTitle, IonContent],
+  imports: [
+    IonHeader,
+    IonToolbar,
+    IonTitle,
+    IonContent,
+    IonItem,
+    IonLabel,
+    IonInput,
+    IonButton,
+    IonList,
+    FormsModule
+  ],
 })
 export class HomePage {
+
+  newTaskStr: string = '';
 
   tasks: Task[] = [
     {
@@ -34,11 +52,50 @@ export class HomePage {
     }
   ];
 
-  constructor() { 
+  constructor() {
     console.log(this.tasks);
   }
 
-  ngOnInit() {
+addTask() {
+
+  // Quitar espacios
+  const tituloLimpio = this.newTaskStr.trim();
+
+  // Validar vacío
+  if (tituloLimpio.length === 0) {
+    alert('El título no puede estar vacío');
+    return;
   }
+
+  // Convertir formato:
+  // UpperCase
+  const tituloFormateado =
+    tituloLimpio.charAt(0).toUpperCase() +
+    tituloLimpio.slice(1).toLowerCase();
+
+  // Validar duplicados
+  const existe = this.tasks.some(
+    tarea => tarea.titulo === tituloFormateado
+  );
+
+  if (existe) {
+    alert('La tarea ya existe');
+    return;
+  }
+
+  // Crear nueva tarea
+  const newTask: Task = {
+    id: Date.now(),
+    titulo: tituloFormateado,
+    descripcion: '',
+    finalizado: false,
+    prioridad: 'Media'
+  };
+
+  this.tasks.push(newTask);
+
+  // Limpiar input
+  this.newTaskStr = '';
+}
 
 }
