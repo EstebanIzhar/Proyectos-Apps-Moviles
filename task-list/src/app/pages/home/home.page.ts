@@ -1,6 +1,8 @@
-import { Task } from './../models/task.model';
+import { Task } from '../../models/task.model';
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import{addIcons} from 'ionicons';
+import {addOutline, addCircleOutline} from 'ionicons/icons';
 
 import {
   IonHeader,
@@ -11,7 +13,8 @@ import {
   IonLabel,
   IonInput,
   IonButton,
-  IonList
+  IonList,
+  IonIcon
 } from '@ionic/angular/standalone';
 
 @Component({
@@ -28,7 +31,8 @@ import {
     IonInput,
     IonButton,
     IonList,
-    FormsModule
+    FormsModule,
+    IonIcon
   ],
 })
 export class HomePage {
@@ -53,6 +57,9 @@ export class HomePage {
   ];
 
   constructor() {
+    addIcons({
+      addCircleOutline
+    });
     console.log(this.tasks);
   }
 
