@@ -1,108 +1,123 @@
-import { Task } from '../../models/task.model';
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import{addIcons} from 'ionicons';
-import {addOutline, addCircleOutline} from 'ionicons/icons';
-
 import {
-  IonHeader,
-  IonToolbar,
-  IonTitle,
-  IonContent,
-  IonItem,
-  IonLabel,
-  IonInput,
+  AlertController,
   IonButton,
+  IonContent,
+  IonHeader,
+  IonIcon,
+  IonInput,
+  IonItem,
+  IonItemOption,
+  IonItemOptions,
+  IonItemSliding,
+  IonLabel,
   IonList,
-  IonIcon
+  IonReorder,
+  IonReorderGroup,
+  IonTitle,
+  IonToolbar,
 } from '@ionic/angular/standalone';
+import { addIcons } from 'ionicons';
+import { addOutline, listOutline, reorderThreeOutline, trashOutline } from 'ionicons/icons';
+import { Task } from '../../models/task.model';
 
 @Component({
   selector: 'app-home',
   templateUrl: 'home.page.html',
   styleUrls: ['home.page.scss'],
   imports: [
+    FormsModule,
     IonHeader,
     IonToolbar,
     IonTitle,
     IonContent,
     IonItem,
-    IonLabel,
     IonInput,
     IonButton,
+    IonIcon,
     IonList,
-    FormsModule,
-    IonIcon
+    IonLabel,
+    IonItemSliding,
+    IonItemOptions,
+    IonItemOption,
+    IonReorder,
+    IonReorderGroup,
   ],
 })
 export class HomePage {
-
   newTaskStr: string = '';
+  task = '';
+  taskList: Task[] = [];
 
-  tasks: Task[] = [
-    {
-      id: 1,
-      titulo: "Configuración de Ionic",
-      descripcion: "Instalar Node.js, Angular CLI, Ionic",
-      finalizado: true,
-      prioridad: "Alta"
-    },
-    {
-      id: 2,
-      titulo: "Crear app tasklist",
-      descripcion: "Crear el proyecto inicial de Ionic con Angular",
-      finalizado: false,
-      prioridad: "Media"
-    }
-  ];
+  private nextId = 1;
+  private alertController = inject(AlertController);
 
   constructor() {
-    addIcons({
-      addCircleOutline
+    addIcons({ addOutline, trashOutline, reorderThreeOutline, listOutline });
+  }
+
+  addTask(): void {
+    const title = this.task.trim();
+
+    if (!title) {
+      void this.showAlert('Campo vacío', 'No puedes agregar una tarea sin texto.');
+      return;
+    }
+
+    if (this.isDuplicate(title)) {
+      void this.showAlert('Tarea duplicada', 'Esta tarea ya existe en tu lista (no distingue mayúsculas).');
+      return;
+    }
+
+    this.taskList.push({ id: this.nextId++, title });
+    this.task = '';
+    void this.showAlert('Tarea agregada', 'La tarea ha sido agregada exitosamente.');
+  }
+
+  private isDuplicate(title: string): boolean {
+    const normalized = title.toLowerCase();
+    return this.taskList.some((task) => task.title.toLowerCase() === normalized);
+  }
+
+  handleReorder(event: CustomEvent): void {
+    const movedTask = this.taskList.splice(event.detail.from, 1)[0];
+    this.taskList.splice(event.detail.to, 0, movedTask);
+    event.detail.complete();
+  }
+
+  async confirmDelete(task: Task, slidingItem: IonItemSliding): Promise<void> {
+    const alert = await this.alertController.create({
+      header: 'Eliminar tarea',
+      message: `¿Estás seguro de eliminar "${task.title}"?`,
+      buttons: [
+        {
+          text: 'Cancelar',
+          role: 'cancel',
+          handler: () => slidingItem.close(),
+        },
+        {
+          text: 'Eliminar',
+          role: 'destructive',
+          handler: () => this.deleteTask(task.id),
+        },
+      ],
     });
-    console.log(this.tasks);
+
+    await alert.present();
   }
 
-addTask() {
-
-  // Quitar espacios
-  const tituloLimpio = this.newTaskStr.trim();
-
-  // Validar vacío
-  if (tituloLimpio.length === 0) {
-    alert('El título no puede estar vacío');
-    return;
+  private deleteTask(id: number): void {
+    this.taskList = this.taskList.filter((task) => task.id !== id);
   }
 
-  // Convertir formato:
-  // UpperCase
-  const tituloFormateado =
-    tituloLimpio.charAt(0).toUpperCase() +
-    tituloLimpio.slice(1).toLowerCase();
+  private async showAlert(header: string, message: string): Promise<void> {
+    const alert = await this.alertController.create({
+      header,
+      message,
+      buttons: ['OK'],
+    });
 
-  // Validar duplicados
-  const existe = this.tasks.some(
-    tarea => tarea.titulo === tituloFormateado
-  );
-
-  if (existe) {
-    alert('La tarea ya existe');
-    return;
+    await alert.present();
   }
-
-  // Crear nueva tarea
-  const newTask: Task = {
-    id: Date.now(),
-    titulo: tituloFormateado,
-    descripcion: '',
-    finalizado: false,
-    prioridad: 'Media'
-  };
-
-  this.tasks.push(newTask);
-
-  // Limpiar input
-  this.newTaskStr = '';
-}
-
 }
